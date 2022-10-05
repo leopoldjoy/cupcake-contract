@@ -1,0 +1,11 @@
+{
+  "name": "evm-cupcake-cli",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "ethereumjs-tx": "^2.1.2",
+    "ethers": "^5.7.1",
+    "web3-eth-contract": "^1.8.0"
+  }
+}
