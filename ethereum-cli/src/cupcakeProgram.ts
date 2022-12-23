@@ -5,7 +5,7 @@ var Contract = require('web3-eth-contract');
 var cupcakeProgramInterface = require("../interfaces/cupcakeProgram.json")
 
 export class CupcakeProgram {
-  static address = "0x32b78F7269C9fd7F65C8dCD0bD0721B0B522F31C"
+  static address = "0x333372A1082243BC36Caa7525523F7c389828142"
   static abi = cupcakeProgramInterface
   provider: any
   contract: typeof Contract
@@ -18,13 +18,6 @@ export class CupcakeProgram {
     this.caller = callerAddress
   }
 
-  async readNumSprinkles() {
-    const result = await this.contract.methods
-      .numTags()
-      .call({ from: this.caller })
-    return result
-  }
-
   async createSprinkle(
     tagType: number, 
     tokenAddress: string, 
@@ -34,19 +27,27 @@ export class CupcakeProgram {
     perUser: number, 
     fungiblePerClaim: number, 
     uid: string,
-    isNotErc1155: boolean
+    isNotErc1155: boolean,
+    subscriptionId: number,
+    vrfConsumerBaseV2: string,
+    metadataURIs: string[]
   ) {
     const rawTxn = await this.contract.methods
       .addOrRefillTag(
-        tagType,
-        tokenAddress,
-        erc721TokenId,
-        tagAuthority,
-        totalSupply,
-        perUser,
-        fungiblePerClaim,
-        uid,
-        isNotErc1155
+        [
+          tagType,
+          tokenAddress,
+          erc721TokenId,
+          tagAuthority,
+          totalSupply,
+          perUser,
+          fungiblePerClaim,
+          uid,
+          subscriptionId,
+          vrfConsumerBaseV2
+        ],
+        isNotErc1155,
+        metadataURIs
       )
       .encodeABI({ from: this.caller })
     const txn = await constructAndSignTxn(
@@ -59,13 +60,34 @@ export class CupcakeProgram {
     return await sendAndConfirmTxn(this.provider, txn)
   }
 
-  async claimSprinkle(toAddress: string, uid: string, isNotErc1155: boolean, newTokenId: number) {
+  async claimSprinkle(
+    toAddress: string, uid: string, isNotErc1155: boolean, newTokenId: number, keyHash: string
+  ) {
     const rawTxn = await this.contract.methods
       .claimTag(
         toAddress,
         uid,
+        this.caller,
         isNotErc1155,
-        newTokenId
+        newTokenId,
+        keyHash
+      )
+      .encodeABI({ from: this.caller })
+    const txn = await constructAndSignTxn(
+      this.provider,
+      CupcakeProgram.address,
+      this.caller,
+      DEV_WALLET_PK,
+      rawTxn
+    )
+    return await sendAndConfirmTxn(this.provider, txn)
+  }
+
+  async cancelAndEmptySprinkles(uid: string, isNotErc1155: boolean) {
+    const rawTxn = await this.contract.methods
+      .cancelAndEmpty(
+        uid,
+        isNotErc1155
       )
       .encodeABI({ from: this.caller })
     const txn = await constructAndSignTxn(
