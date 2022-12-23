@@ -4,13 +4,12 @@ import { MintingProgram } from "./src/mintingProgram"
 const { DEV_RPC_URL, DEV_WALLET } = constants
 const { CupcakeProgram } = cupcakeProgram
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 async function test(tokenId: number, uri: string, uid: string) {
   console.log("input:", tokenId, uri)
   const cupcakeProgram = new CupcakeProgram(DEV_RPC_URL, DEV_WALLET)
   const mintingProgram = new MintingProgram(DEV_RPC_URL, DEV_WALLET)
-
-  const numSprinkles = await cupcakeProgram.readNumSprinkles()
-  console.log("Num sprinkles:", numSprinkles)
 
   const newToken = await mintingProgram.mint(DEV_WALLET, tokenId, uri)
   console.log("New token:", newToken)
@@ -30,7 +29,10 @@ async function test(tokenId: number, uri: string, uid: string) {
     10,
     0,
     "0x" + uid,
-    true
+    true,
+    100,
+    NULL_ADDRESS,
+    []
   )
   console.log("New sprinkle:", newSprinkle)
 
@@ -38,7 +40,8 @@ async function test(tokenId: number, uri: string, uid: string) {
     DEV_WALLET, 
     "0x" + uid, 
     true, 
-    929
+    929,
+    "0x00"
   )
   console.log("claim sprinkle response", claimSprinkleResponse)
 }
